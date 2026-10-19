@@ -276,8 +276,11 @@ function updateCaptions(p) {
 /* ----------------------------------------------------------
    3. Scroll drive: lerped, resting rAF loop
    ---------------------------------------------------------- */
+/* the sticky stage is 100svh, so measure it rather than innerHeight,
+   which jumps while mobile browser bars collapse */
+const stageEl = hero.querySelector('.stage');
 let heroTop = 0, heroRange = 1;
-function measure() { heroTop = hero.offsetTop; heroRange = Math.max(1, hero.offsetHeight - innerHeight); }
+function measure() { heroTop = hero.offsetTop; heroRange = Math.max(1, hero.offsetHeight - stageEl.offsetHeight); }
 const heroProgress = () => clamp((scrollY - heroTop) / heroRange, 0, 1);
 
 let target = 0, shown = 0, rafId = null, lastTick = 0, heroOnScreen = true, scrubOn = false;
@@ -307,11 +310,8 @@ function loadRamp() {
   requestAnimationFrame(step);
 }
 
-/* five static-hero gates, identical to the CSS */
+/* static-hero gates, identical to the CSS; phones get the stacked scroll build */
 const GATES = [
-  '(max-width: 720px)',
-  '(orientation: portrait) and (max-width: 1024px)',
-  '(orientation: portrait) and (pointer: coarse)',
   '(orientation: landscape) and (pointer: coarse) and (max-height: 560px)',
   '(prefers-reduced-motion: reduce)'
 ];
@@ -563,6 +563,7 @@ function openState() {
   return { open: false };
 }
 const statusBox = document.querySelector('.status'), statusTxt = document.querySelector('[data-status]'), nowEl = document.querySelector('[data-now]');
+const openEl = document.querySelector('[data-open]'), openBox = openEl && openEl.parentElement;
 let lastStatus = '';
 function paintStatus() {
   const s = openState();
@@ -572,6 +573,11 @@ function paintStatus() {
   statusTxt.textContent = txt;
   statusBox.classList.toggle('closed', !s.open);
   if (nowEl) { nowEl.hidden = false; nowEl.textContent = txt; }
+  if (openEl) {
+    openEl.textContent = s.open ? `Otvoreno · do ${s.until}` : 'Zatvoreno · otvaramo u 08:00';
+    openBox.classList.toggle('closed', !s.open);
+    openBox.querySelector('i').hidden = false;
+  }
 }
 paintStatus();
 setInterval(paintStatus, 60000);
